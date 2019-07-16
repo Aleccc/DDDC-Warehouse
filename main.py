@@ -7,7 +7,7 @@ Created on Fri May 17 18:07:12 2019
 
 import os
 import pandas as pd
-import statsmodels.formula.api as smf
+# import statsmodels.formula.api as smf
 
 from timer import timer
 from query_premises import get_cd, get_cd_by_premise
