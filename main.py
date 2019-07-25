@@ -10,8 +10,8 @@ import pandas as pd
 # import statsmodels.formula.api as smf
 
 from timer import timer
-from query_premises import get_cd, get_cd_by_premise
-from query_weather import read_weather_csv
+from datawarehouse.queries.query_premises import get_cd, get_cd_by_premise
+from datawarehouse.queries.query_weather import read_weather_csv
 
 STATIC = 'static'
 factors = pd.read_csv(os.path.join(STATIC,'true_up_factors.csv'))
@@ -173,17 +173,18 @@ def run_with_ddl(year, estimate=True):
     return df
 
 ### start here for bucketed
-result = run_with_ddl(2019)
-oldyear = run_with_ddl(2018, estimate=False)
-oldoldyear = run_with_ddl(2017, estimate=False)
+# result = run_with_ddl(2019)
+# oldyear = run_with_ddl(2018, estimate=False)
+# oldoldyear = run_with_ddl(2017, estimate=False)
+# old3year = run_with_ddl(2016, estimate=False)
 
-oldyear = oldyear.merge(oldoldyear, how='left', on='prem', suffixes=('_18', '_17'))
-del oldoldyear
-result = result.merge(oldyear, how='left', on='prem')
-del oldyear
+# oldyear = oldyear.merge(oldoldyear, how='left', on='prem', suffixes=('_18', '_17'))
+# del oldoldyear
+# result = result.merge(oldyear, how='left', on='prem')
+# del oldyear
 
-result['variation'] = result[['ddl','ddl_18','ddl_17']].var(axis=1)
-#result[result.variation >=  result.variation.quantile(.997)].to_csv('t.csv')
+# result['variation'] = result[['ddl','ddl_18','ddl_17']].var(axis=1)
+# #result[result.variation >=  result.variation.quantile(.997)].to_csv('t.csv')
 
 def read_years_by_pool():
     df = pd.DataFrame(columns=['pool', 'ddl', 'year'])
@@ -216,7 +217,7 @@ for year in range(2019, 2013, -1):
     save time: 9.19sec
     ### 26,767sec <=> 7hrs 26mins
     """
-    df = get_cd(year) #df = get_cd_by_premise(year, 12245327)
+    df = get_cd_by_premise(year, 483444526)  # df = get_cd(year) 
     df = assign_hdd_to_reads(df)
     gb = df.groupby('agl_premise_number')
     del df
@@ -227,5 +228,5 @@ for year in range(2019, 2013, -1):
     del summer_base_load, coldest_winter_month
     ddl = pd.DataFrame(data=data, columns=columns)
     ddl['year'] = year
-    #save(ddl, year)
-    del ddl
+    # save(ddl, year)
+    # del ddl
