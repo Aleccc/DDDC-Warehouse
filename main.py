@@ -195,7 +195,8 @@ def run_with_ddl(year, estimate=True):
 
 
 ### start here for bucketed
-# result = run_with_ddl(2019)
+result = run_with_ddl(2019)
+print(result[result.prem == 451418625].bucketed)
 # oldyear = run_with_ddl(2018, estimate=False)
 # oldoldyear = run_with_ddl(2017, estimate=False)
 # old3year = run_with_ddl(2016, estimate=False)
