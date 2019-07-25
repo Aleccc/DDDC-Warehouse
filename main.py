@@ -19,7 +19,7 @@ YEARS_DIR = os.path.join(STATIC, 'years')
 YEARS_BY_POOL_DIR = os.path.join(YEARS_DIR, 'by_pool')
 
 
-def step1_sf(df, year):
+def _step1_sf(df, year):
     """ Summer Base Load
         returns tuple of daily summer base load and flag of how calculated"""
     this_summer = ['{}07'.format(year - 1), '{}08'.format(year - 1)]
@@ -39,7 +39,7 @@ def step1_sf(df, year):
             return (None, -1)
 
 
-def step2_sf(df, year, poultry=False):
+def _step2_sf(df, year, poultry=False):
     """ Monthly Base Load for Coldest Winter Month """
     this_year_beg = pd.Timestamp(year=year - 1, month=10, day=31)
     this_year_end = pd.Timestamp(year=year, month=4, day=1)
@@ -70,7 +70,7 @@ def step2_sf(df, year, poultry=False):
             return (None, -1)
 
 
-def designated_day_load(prem, summer, winter, poultry=False):
+def _designated_day_load(prem, summer, winter, poultry=False):
     global factors
     summer_base_load = summer
     coldest_winter_month = winter
@@ -112,13 +112,13 @@ def assign_hdd_to_reads(hdd, df):
 
 @timer
 def calculate_summer_base(gb, year):
-    summer_base_load = gb.apply(lambda x: step1_sf(x, year))
+    summer_base_load = gb.apply(lambda x: _step1_sf(x, year))
     return summer_base_load
 
 
 @timer
 def find_coldest_month(gb, year):
-    coldest_winter_month = gb.apply(lambda x: step2_sf(x, year))
+    coldest_winter_month = gb.apply(lambda x: _step2_sf(x, year))
     return coldest_winter_month
 
 
@@ -126,10 +126,10 @@ def find_coldest_month(gb, year):
 def calculate_designated_day_load(summer, winter):
     ddl = []
     for i in range(len(summer)):
-        ddl.extend([designated_day_load(winter.index[i],
-                                        summer.iloc[i],
-                                        winter.iloc[i],
-                                        None)
+        ddl.extend([_designated_day_load(winter.index[i],
+                                         summer.iloc[i],
+                                         winter.iloc[i],
+                                         None)
                     ])
     return ddl
 
@@ -162,7 +162,7 @@ def trueup(df, estimate=False):
     return df
 
 
-def bucket(x):
+def _bucket(x):
     from bisect import bisect
     upper_bound = [0.099, 0.199, 0.299, 0.399, 0.499, 0.599, 0.699, 0.799, 0.899, 0.999, 1.099, 1.199, 1.299, 1.399,
                    1.499, 1.599, 1.699, 1.799, 1.899, 1.999, 2.099, 2.199, 2.299, 2.399, 2.499, 2.599, 2.699, 2.799,
@@ -182,7 +182,7 @@ def bucket(x):
 
 @timer
 def apply_buckets(df):
-    df['bucketed'] = df.trued.apply(bucket)
+    df['bucketed'] = df.trued.apply(_bucket)
     return df
 
 
