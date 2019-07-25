@@ -101,7 +101,7 @@ def designated_day_load(prem, summer, winter, poultry=False):
 
 
 @timer
-def assign_hdd_to_reads(df):
+def assign_hdd_to_reads(hdd, df):
     """this should be re-written to an apply function or vectorized"""
     df['HDD'] = list(
         hdd['HDD65'][(hdd.index >= df.begin_date.iloc[x]) & (hdd.index <= df.end_date.iloc[x])].sum() for x in
@@ -224,32 +224,34 @@ def read_years_by_pool():
 # =============================================================================
 # Start of the DDL calculation
 # =============================================================================
-assert 0
-hdd = read_weather_csv()
-columns = ['ddl', 'summerflag', 'winterflag', 'prem', 'pool']
-# year = 2019
-for year in range(2019, 2013, -1):
-    """
-    read_weather_csv time: 0.05sec
-    current_cd time: 1066.78sec (as high as 5922.04sec via VPN)
-    clean time: 338.66sec
-    assign_hdd_to_reads time: 15755.53sec
-    calculate_summer_base time: 2717.62sec
-    find_coldest_month time: 5853.55sec
-    calculate_designated_day_load time: 1029.51sec
-    save time: 9.19sec
-    ### 26,767sec <=> 7hrs 26mins
-    """
-    df = get_cd_by_premise(year, 483444526)  # df = get_cd(year) 
-    df = assign_hdd_to_reads(df)
-    gb = df.groupby('agl_premise_number')
-    del df
-    summer_base_load = calculate_summer_base(gb, year)
-    coldest_winter_month = find_coldest_month(gb, year)
-    del gb
-    data = calculate_designated_day_load(summer_base_load, coldest_winter_month)
-    del summer_base_load, coldest_winter_month
-    ddl = pd.DataFrame(data=data, columns=columns)
-    ddl['year'] = year
-    # save(ddl, year)
-    # del ddl
+def main(premise=None):
+    hdd = read_weather_csv()
+    columns = ['ddl', 'summerflag', 'winterflag', 'prem', 'pool']
+    for year in range(2019, 2013, -1):
+        """
+        read_weather_csv time: 0.05sec
+        current_cd time: 1066.78sec (as high as 5922.04sec via VPN)
+        clean time: 338.66sec
+        assign_hdd_to_reads time: 15755.53sec
+        calculate_summer_base time: 2717.62sec
+        find_coldest_month time: 5853.55sec
+        calculate_designated_day_load time: 1029.51sec
+        save time: 9.19sec
+        ### 26,767sec <=> 7hrs 26mins
+        """
+        if premise:
+            df = get_cd_by_premise(year, premise)
+        else:
+            df = get_cd(year)
+        df = assign_hdd_to_reads(hdd, df)
+        gb = df.groupby('agl_premise_number')
+        del df
+        summer_base_load = calculate_summer_base(gb, year)
+        coldest_winter_month = find_coldest_month(gb, year)
+        del gb
+        data = calculate_designated_day_load(summer_base_load, coldest_winter_month)
+        del summer_base_load, coldest_winter_month
+        ddl = pd.DataFrame(data=data, columns=columns)
+        ddl['year'] = year
+        # save(ddl, year)
+        # del ddl
